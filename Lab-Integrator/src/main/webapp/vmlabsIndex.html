@@ -1,0 +1,68 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html lang="en" xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+<script type="text/javascript" src="lib/jquery-2.2.0/jquery-2.2.0.min.js"></script>
+<title>LTI launch via SSO</title>
+<script type="text/javascript">
+//<![CDATA[
+
+function getUrlParams() {
+    var paramArray = window.location.href.split("?")[1].split("&");
+    var params = new Object();
+    for(var i = 0; i < paramArray.length; i++) {
+    	var thisParam = paramArray[i].split("=");
+    	params[thisParam[0]] = thisParam[1];
+    }
+    return params;
+}  
+
+$(function() {
+	var params = getUrlParams();
+	
+	if(params["action"] == "admin") {
+		$("body").html("<a class=\"btn btn-info\" id=\"refreshLab\">Refresh</a>");
+		$("#refreshLab").on("click", function(ev) {
+			$.ajax({
+			    type:"POST",
+			    url:"vmlabs/refreshLabs",
+			    success: function(response) {
+			    	alert(JSON.stringify(response));
+			    },
+			    contentType: "application/json",
+			    dataType: 'json'
+			}); 
+		});
+	} else if(params["action"] == "launchLab") {
+		
+		$("#msg").text("Initializing lab... Please wait!");
+		$.ajax({
+		    type:"GET",
+		    url:"vmlabs/getEntitlement/"+params["tenant"]+"/"+params["username"]+"/"+params["labId"],
+		    success: function(response) {
+		    	//if(response.success) {
+		    		//alert(JSON.stringify(response));
+					//$("body").append(response.data.neeToken);
+					$("body").html("<iframe style=\"width:100%; height:100vh;border:none;\" id=\"labArea\" src=\"\"></iframe>")
+					$("#labArea").attr("src", "http://www.vmwarelearningplatform.com/console?neeToken="+response.data.neeToken)
+					//window.open("http://www.vmwarelearningplatform.com/console?neeToken="+response.data.neeToken);
+				//}
+		    },
+		    contentType: "application/json",
+		    dataType: 'json'
+		});
+		
+	}
+	
+});
+
+//]]>
+</script>
+</head>
+<body>
+	
+  <p id="msg">
+  </p>
+  
+</body>
+</html>
